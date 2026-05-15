@@ -48,45 +48,6 @@ html, body, [class*="css"] {
     margin: 0;
 }
 
-.result-box {
-    border-radius: 14px;
-    padding: 1rem 1.2rem;
-    margin-bottom: 1rem;
-}
-
-.fresh-box {
-    background: rgba(16,185,129,.1);
-    border: 1px solid rgba(16,185,129,.3);
-}
-
-.notfresh-box {
-    background: rgba(239,68,68,.1);
-    border: 1px solid rgba(239,68,68,.3);
-}
-
-.warning-box {
-    background: rgba(245,158,11,.1);
-    border: 1px solid rgba(245,158,11,.3);
-}
-
-.result-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: .3rem;
-}
-
-.green {
-    color: #059669;
-}
-
-.red {
-    color: #dc2626;
-}
-
-.orange {
-    color: #d97706;
-}
-
 [data-testid="stImage"] img {
     border-radius: 14px;
 }
@@ -118,45 +79,41 @@ NON_FISH_BLOCK = {
     'skirt', 'blouse', 'uniform', 'jersey', 'robe', 'kimono', 'abaya',
     'hijab', 'veil', 'scarf', 'tie', 'sock', 'shoe', 'boot', 'sandal',
     'hat', 'cap', 'helmet', 'glasses', 'sunglasses', 'bag', 'backpack',
-    'handbag', 'purse', 'wallet', 'umbrella', 'watch', 'sari', 'sarong',
-    'poncho', 'cloak', 'gown', 'pajama', 'swimsuit', 'mitten', 'brassiere',
+    'handbag', 'purse', 'wallet', 'umbrella', 'watch',
 
-    # Hewan darat / udara
+    # Hewan
     'cat', 'dog', 'horse', 'cow', 'elephant', 'lion', 'tiger', 'bear',
     'rabbit', 'bird', 'chicken', 'duck', 'goose', 'penguin', 'parrot',
     'snake', 'lizard', 'frog', 'insect', 'butterfly', 'bee', 'monkey',
-    'gorilla', 'deer', 'fox', 'wolf', 'squirrel', 'hamster', 'pig',
-    'sheep', 'goat', 'camel', 'zebra', 'giraffe', 'hippo',
 
     # Kendaraan
     'car', 'truck', 'bus', 'motorcycle', 'bicycle', 'train', 'airplane',
-    'helicopter', 'ambulance', 'tractor', 'tank',
 
-    # Bangunan / tempat
-    'building', 'house', 'church', 'mosque', 'tower', 'bridge', 'castle',
-    'street', 'road', 'mountain', 'volcano', 'forest', 'tree', 'flower',
-    'grass', 'sky', 'cloud',
+    # Tempat
+    'building', 'house', 'bridge', 'street', 'road',
+    'mountain', 'forest', 'tree', 'flower',
 
-    # Elektronik / perangkat
-    'phone', 'computer', 'keyboard', 'television', 'camera', 'microphone',
-    'monitor', 'laptop', 'screen', 'display', 'tablet',
+    # Elektronik
+    'phone', 'computer', 'keyboard', 'television',
+    'camera', 'monitor', 'laptop', 'screen',
 
-    # Furnitur / benda
-    'book', 'bottle', 'cup', 'chair', 'table', 'lamp', 'clock', 'sofa',
-    'bed', 'door', 'window',
+    # Benda
+    'book', 'bottle', 'cup', 'chair', 'table',
+    'lamp', 'clock', 'sofa',
 
-    # Ilustrasi / media
-    'comic', 'cartoon', 'illustration', 'drawing', 'anime', 'poster',
-    'banner', 'envelope', 'jigsaw', 'puzzle',
+    # Media / gambar
+    'comic', 'cartoon', 'illustration', 'drawing',
+    'anime', 'poster', 'banner',
 
-    # Musik / panggung
-    'piano', 'guitar', 'violin', 'drum', 'stage', 'theater',
+    # Musik
+    'piano', 'guitar', 'violin', 'drum', 'stage',
 
-    # Diagram / teknis
-    'web', 'diagram', 'chart', 'graph', 'plot', 'abacus',
+    # Diagram
+    'web', 'diagram', 'chart', 'graph', 'plot',
 
     # Seafood non ikan
-    'shrimp', 'lobster', 'crab', 'squid', 'octopus', 'seafood',
+    'shrimp', 'lobster', 'crab',
+    'squid', 'octopus', 'seafood',
 }
 
 @st.cache_resource
@@ -249,9 +206,12 @@ def predict(model, img_array):
     prob_fresh = 1 - pred
 
     if pred >= THRESHOLD:
+
         label = "Not Fresh"
         confidence = prob_notfresh
+
     else:
+
         label = "Fresh"
         confidence = prob_fresh
 
@@ -304,13 +264,16 @@ if uploaded_file:
             valid, detected_label = validate_image(image)
 
         if not valid:
-              st.warning(
-                  f"Objek tidak didukung.\n\n"
-                  f"Terdeteksi sebagai: {detected_label}"
-              )
-                 st.info(
-                     "Silakan upload gambar ikan sesuai dataset penelitian."
-                 )
+
+            st.warning(
+                f"Objek tidak didukung.\n\n"
+                f"Terdeteksi sebagai: {detected_label}"
+            )
+
+            st.info(
+                "Silakan upload gambar ikan sesuai dataset penelitian."
+            )
+
         else:
 
             img_array = preprocess_image(image)
@@ -321,27 +284,26 @@ if uploaded_file:
             )
 
             if label == "Fresh":
+
                 st.success(
                     f"Fresh\n\n"
                     f"Confidence Score: {confidence*100:.2f}%"
+                )
 
             else:
+
                 st.error(
                     f"Not Fresh\n\n"
                     f"Confidence Score: {confidence*100:.2f}%"
-            )
+                )
+
             st.markdown("### Probabilitas Klasifikasi")
-            
+
             st.write(f"Fresh : {prob_fresh*100:.2f}%")
             st.progress(float(prob_fresh))
-    
+
             st.write(f"Not Fresh : {prob_notfresh*100:.2f}%")
             st.progress(float(prob_notfresh))
-            )
-
-            st.write("Not Fresh")
-            st.progress(float(prob_notfresh))
-            st.caption(f"{prob_notfresh*100:.2f}%")
 
             with st.expander("Detail Teknis"):
 
