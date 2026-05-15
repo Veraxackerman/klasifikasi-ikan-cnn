@@ -1,5 +1,7 @@
 streamlit==1.35.0
-tensorflow-cpu==2.13.0
-numpy==1.24.3
+tensorflow==2.20.0
+numpy==1.26.4
 Pillow==10.0.0
-opencv-python-headless==4.8.1.78
+opencv-python-headless==4.10.0.84
+protobuf==5.29.5
+h5py==3.11.0
