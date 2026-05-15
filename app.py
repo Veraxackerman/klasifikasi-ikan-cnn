@@ -304,26 +304,13 @@ if uploaded_file:
             valid, detected_label = validate_image(image)
 
         if not valid:
-
-            st.markdown(f"""
-            <div class="result-box warning-box">
-                <div class="result-title orange">
-                    ⚠️ Objek Tidak Didukung
-                </div>
-
-                <div>
-                    Terdeteksi sebagai:
-                    <b>{detected_label}</b>
-                </div>
-
-                <br>
-
-                <div>
-                    Silakan upload gambar ikan sesuai dataset penelitian.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
+              st.warning(
+                  f"Objek tidak didukung.\n\n"
+                  f"Terdeteksi sebagai: {detected_label}"
+              )
+                 st.info(
+                     "Silakan upload gambar ikan sesuai dataset penelitian."
+                 )
         else:
 
             img_array = preprocess_image(image)
@@ -334,44 +321,22 @@ if uploaded_file:
             )
 
             if label == "Fresh":
-
-                st.markdown(f"""
-                <div class="result-box fresh-box">
-                    <div class="result-title green">
-                        ✅ Fresh
-                    </div>
-
-                    <div>
-                        Confidence Score:
-                        <b>{confidence*100:.2f}%</b>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.success(
+                    f"Fresh\n\n"
+                    f"Confidence Score: {confidence*100:.2f}%"
 
             else:
-
-                st.markdown(f"""
-                <div class="result-box notfresh-box">
-                    <div class="result-title red">
-                        ❌ Not Fresh
-                    </div>
-
-                    <div>
-                        Confidence Score:
-                        <b>{confidence*100:.2f}%</b>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
+                st.error(
+                    f"Not Fresh\n\n"
+                    f"Confidence Score: {confidence*100:.2f}%"
+            )
             st.markdown("### Probabilitas Klasifikasi")
-
-            st.write("Fresh")
+            
+            st.write(f"Fresh : {prob_fresh*100:.2f}%")
             st.progress(float(prob_fresh))
-            st.caption(f"{prob_fresh*100:.2f}%")
-
-            st.markdown(
-                "<div style='margin-bottom:10px'></div>",
-                unsafe_allow_html=True
+    
+            st.write(f"Not Fresh : {prob_notfresh*100:.2f}%")
+            st.progress(float(prob_notfresh))
             )
 
             st.write("Not Fresh")
