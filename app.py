@@ -4,18 +4,12 @@ from PIL import Image
 import tensorflow as tf
 import os
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE CONFIG
-# ═══════════════════════════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Fish Freshness Detector",
     page_icon="🐟",
     layout="centered"
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CUSTOM CSS
-# ═══════════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
 
@@ -76,7 +70,7 @@ html, body, [class*="css"] {
 }
 
 .result-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     margin-bottom: .3rem;
 }
@@ -100,48 +94,71 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CONSTANT
-# ═══════════════════════════════════════════════════════════════════════════════
 IMG_SIZE = (224, 224)
 THRESHOLD = 0.5
 
-FISH_KEYWORDS = [
-    "fish",
-    "salmon",
-    "tuna",
-    "trout",
-    "shark",
-    "eel",
-    "stingray",
-    "snapper",
-    "catfish",
-    "tilapia",
-    "mackerel",
-    "sardine",
-    "cod"
-]
+# Kata kunci IKAN
+FISH_ALLOW = {
+    'fish', 'tench', 'goldfish', 'salmon', 'eel', 'shark', 'ray', 'stingray',
+    'puffer', 'blowfish', 'lionfish', 'coho', 'carp', 'mackerel', 'tuna',
+    'cod', 'trout', 'snapper', 'grouper', 'flounder', 'sole', 'halibut',
+    'pike', 'barracuda', 'marlin', 'swordfish', 'anchovy', 'herring',
+    'sardine', 'catfish', 'tilapia',
+}
 
-NON_FISH_KEYWORDS = [
-    "person",
-    "man",
-    "woman",
-    "dog",
-    "cat",
-    "car",
-    "phone",
-    "computer",
-    "laptop",
-    "chair",
-    "table",
-    "logo",
-    "cartoon",
-    "building"
-]
+# Kata kunci BUKAN IKAN
+NON_FISH_BLOCK = {
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# LOAD MODEL
-# ═══════════════════════════════════════════════════════════════════════════════
+    # Manusia & atribut
+    'person', 'people', 'man', 'woman', 'boy', 'girl', 'face', 'head',
+    'human', 'baby', 'child', 'portrait',
+
+    # Pakaian
+    'shirt', 'dress', 'suit', 'jacket', 'coat', 'trousers', 'jeans',
+    'skirt', 'blouse', 'uniform', 'jersey', 'robe', 'kimono', 'abaya',
+    'hijab', 'veil', 'scarf', 'tie', 'sock', 'shoe', 'boot', 'sandal',
+    'hat', 'cap', 'helmet', 'glasses', 'sunglasses', 'bag', 'backpack',
+    'handbag', 'purse', 'wallet', 'umbrella', 'watch', 'sari', 'sarong',
+    'poncho', 'cloak', 'gown', 'pajama', 'swimsuit', 'mitten', 'brassiere',
+
+    # Hewan darat / udara
+    'cat', 'dog', 'horse', 'cow', 'elephant', 'lion', 'tiger', 'bear',
+    'rabbit', 'bird', 'chicken', 'duck', 'goose', 'penguin', 'parrot',
+    'snake', 'lizard', 'frog', 'insect', 'butterfly', 'bee', 'monkey',
+    'gorilla', 'deer', 'fox', 'wolf', 'squirrel', 'hamster', 'pig',
+    'sheep', 'goat', 'camel', 'zebra', 'giraffe', 'hippo',
+
+    # Kendaraan
+    'car', 'truck', 'bus', 'motorcycle', 'bicycle', 'train', 'airplane',
+    'helicopter', 'ambulance', 'tractor', 'tank',
+
+    # Bangunan / tempat
+    'building', 'house', 'church', 'mosque', 'tower', 'bridge', 'castle',
+    'street', 'road', 'mountain', 'volcano', 'forest', 'tree', 'flower',
+    'grass', 'sky', 'cloud',
+
+    # Elektronik / perangkat
+    'phone', 'computer', 'keyboard', 'television', 'camera', 'microphone',
+    'monitor', 'laptop', 'screen', 'display', 'tablet',
+
+    # Furnitur / benda
+    'book', 'bottle', 'cup', 'chair', 'table', 'lamp', 'clock', 'sofa',
+    'bed', 'door', 'window',
+
+    # Ilustrasi / media
+    'comic', 'cartoon', 'illustration', 'drawing', 'anime', 'poster',
+    'banner', 'envelope', 'jigsaw', 'puzzle',
+
+    # Musik / panggung
+    'piano', 'guitar', 'violin', 'drum', 'stage', 'theater',
+
+    # Diagram / teknis
+    'web', 'diagram', 'chart', 'graph', 'plot', 'abacus',
+
+    # Seafood non ikan
+    'shrimp', 'lobster', 'crab', 'squid', 'octopus', 'seafood',
+}
+
 @st.cache_resource
 def load_classifier():
 
@@ -164,9 +181,6 @@ def load_classifier():
 
     return None, None
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# LOAD VALIDATOR
-# ═══════════════════════════════════════════════════════════════════════════════
 @st.cache_resource
 def load_validator():
 
@@ -183,9 +197,6 @@ def load_validator():
 
     return validator, preprocess_input, decode_predictions
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# VALIDASI GAMBAR
-# ═══════════════════════════════════════════════════════════════════════════════
 def validate_image(pil_img):
 
     validator, preprocess_input, decode_predictions = load_validator()
@@ -200,29 +211,26 @@ def validate_image(pil_img):
 
     preds = validator.predict(arr, verbose=0)
 
-    top10 = decode_predictions(preds, top=10)[0]
+    top20 = decode_predictions(preds, top=20)[0]
 
-    for _, label, prob in top10:
+    for _, label, prob in top20:
 
         label = label.lower().replace("_", " ")
 
-        if any(word in label for word in FISH_KEYWORDS):
+        if any(word in label for word in FISH_ALLOW):
 
             return True, label
 
-    for _, label, prob in top10:
+    for _, label, prob in top20:
 
         label = label.lower().replace("_", " ")
 
-        if any(word in label for word in NON_FISH_KEYWORDS):
+        if any(word in label for word in NON_FISH_BLOCK):
 
             return False, label
 
-    return True, top10[0][1]
+    return False, top20[0][1]
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PREPROCESS
-# ═══════════════════════════════════════════════════════════════════════════════
 def preprocess_image(pil_img):
 
     img = pil_img.convert("RGB").resize(IMG_SIZE)
@@ -233,9 +241,6 @@ def preprocess_image(pil_img):
 
     return arr
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PREDICT
-# ═══════════════════════════════════════════════════════════════════════════════
 def predict(model, img_array):
 
     pred = float(model.predict(img_array, verbose=0)[0][0])
@@ -252,9 +257,6 @@ def predict(model, img_array):
 
     return label, confidence, prob_fresh, prob_notfresh
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# HEADER
-# ═══════════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <div class="app-header">
     <h1>🐟 Fish Freshness Detector</h1>
@@ -262,9 +264,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# LOAD MODEL
-# ═══════════════════════════════════════════════════════════════════════════════
 with st.spinner("Memuat model..."):
 
     model, model_path = load_classifier()
@@ -278,17 +277,11 @@ if model is None:
 
     st.stop()
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# UPLOADER
-# ═══════════════════════════════════════════════════════════════════════════════
 uploaded_file = st.file_uploader(
     "Upload foto ikan",
     type=["jpg", "jpeg", "png", "webp"]
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# HASIL
-# ═══════════════════════════════════════════════════════════════════════════════
 if uploaded_file:
 
     image = Image.open(uploaded_file)
@@ -304,7 +297,7 @@ if uploaded_file:
 
     with col2:
 
-        st.markdown("## Hasil Prediksi")
+        st.markdown("## Hasil Klasifikasi")
 
         with st.spinner("Menganalisis gambar..."):
 
@@ -326,7 +319,7 @@ if uploaded_file:
                 <br>
 
                 <div>
-                    Silakan upload gambar ikan.
+                    Silakan upload gambar ikan sesuai dataset penelitian.
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -349,7 +342,7 @@ if uploaded_file:
                     </div>
 
                     <div>
-                        Tingkat keyakinan:
+                        Confidence Score:
                         <b>{confidence*100:.2f}%</b>
                     </div>
                 </div>
@@ -364,17 +357,22 @@ if uploaded_file:
                     </div>
 
                     <div>
-                        Tingkat keyakinan:
+                        Confidence Score:
                         <b>{confidence*100:.2f}%</b>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-            st.markdown("### Probabilitas")
+            st.markdown("### Probabilitas Klasifikasi")
 
             st.write("Fresh")
             st.progress(float(prob_fresh))
             st.caption(f"{prob_fresh*100:.2f}%")
+
+            st.markdown(
+                "<div style='margin-bottom:10px'></div>",
+                unsafe_allow_html=True
+            )
 
             st.write("Not Fresh")
             st.progress(float(prob_notfresh))
@@ -383,8 +381,7 @@ if uploaded_file:
             with st.expander("Detail Teknis"):
 
                 st.write(f"Model : {os.path.basename(model_path)}")
-                st.write(f"Ukuran Input : 224 x 224")
-                st.write(f"Threshold : {THRESHOLD}")
+                st.write("Ukuran Input : 224 x 224")
 
 else:
 
@@ -392,9 +389,6 @@ else:
         "Upload gambar ikan untuk memulai klasifikasi."
     )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# FOOTER
-# ═══════════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <hr>
 
